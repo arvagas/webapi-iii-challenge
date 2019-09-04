@@ -1,6 +1,7 @@
 const express = require('express')
 
 const userRouter = require('./users/userRouter')
+const postRouter = require('./posts/postRouter')
 
 const server = express()
 
@@ -19,5 +20,6 @@ server.use(logger)
 
 // @@@@@@@@@@ Routing Handlers @@@@@@@@@@
 server.use('/users', userRouter)
+server.use('/posts', postRouter)
 
 module.exports = server
