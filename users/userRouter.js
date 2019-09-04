@@ -1,4 +1,4 @@
-const express = 'express'
+const express = require('express')
 
 const router = express.Router()
 
@@ -42,7 +42,6 @@ function validatePost(req, res, next) {
     }
 }
 
-//route handling
 router.post('/', (req, res) => {
 
 })
@@ -51,16 +50,27 @@ router.post('/:id/posts', (req, res) => {
 
 })
 
+// @@@@@@@@@@ GET requests @@@@@@@@@@
 router.get('/', (req, res) => {
-
+    db.get()
+    .then(users => res.json(users))
+    .catch(err => res.status(500).json({ message: 'list of users could not be retrieved' }))
 })
 
-router.get('/:id', (req, res) => {
+router.get('/:id', validateUserId, (req, res) => {
+    const { id } = req.params
 
+    db.getById(id)
+    .then(user => res.json(user))
+    .catch(err => res.status(500).json({ message: "error retrieving user" }))
 })
 
-router.get('/:id/posts', (req, res) => {
+router.get('/:id/posts', validateUserId, (req, res) => {
+    const { id } = req.params
 
+    db.getUserPosts(id)
+    .then(posts => res.json(posts))
+    .catch(err => res.status(500).json({ message: "error retrieving user's posts" }))
 })
 
 router.delete('/:id', (req, res) => {
