@@ -1,14 +1,17 @@
 const express = require('express')
 
+const userDB = require('./userDb')
+const postDB = require('../posts/postDb')
+
 const router = express.Router()
 
-const db = require('./userDb')
+router.use(express.json())
 
-//custom middleware
+// @@@@@@@@@@ Custom Middleware @@@@@@@@@@
 function validateUserId(req, res, next) {
     const { id } = req.params
 
-    db.getById(id)
+    userDB.getById(id)
     .then(user => {
         if (user) next()
         else res.status(400).json({ message: "invalid user id" })
@@ -19,40 +22,39 @@ function validateUserId(req, res, next) {
 function validateUser(req, res, next) {
     const validUser = req.body
 
-    switch(validUser) {
-        case !validUser :
-            res.status(400).json({ message: "missing user data" })
-        case !validUser.name :
-            res.status(400).json({ message: "missing required name field" })
-        case validUser && validUser.name :
-            next()
-    }
+    if (!validUser) res.status(400).json({ message: "missing user data" })
+    else if (!validUser.name) res.status(400).json({ message: "missing required name field" })
+    else if (validUser && validUser.name) next()
 }
 
 function validatePost(req, res, next) {
     const validPost = req.body
 
-    switch(validPost) {
-        case !validPost :
-            res.status(400).json({ message: "missing post data" })
-        case !validPost.text :
-            res.status(400).json({ message: "missing required text field" })
-        case validPost && validPost.text :
-            next()
-    }
+    if (!validPost) res.status(400).json({ message: "missing post data" })
+    else if (!validPost.text) res.status(400).json({ message: "missing required text field" })
+    else if (validPost && validPost.text) next()
 }
 
-router.post('/', (req, res) => {
+// @@@@@@@@@@ POST requests @@@@@@@@@@
+router.post('/', validateUser, (req, res) => {
+    const newUser = req.body
 
+    userDB.insert(newUser)
+    .then(user => res.status(201).json(user))
+    .catch(err => res.status(500).json({ message: "error adding new user" }))
 })
 
-router.post('/:id/posts', (req, res) => {
+router.post('/:id/posts', validateUserId, validatePost, (req, res) => {
+    const newPost = req.body
 
+    postDB.insert(newPost)
+    .then(post => res.status(201).json(post))
+    .catch(err => res.status(500).json({ message: "error adding new post to user" }))
 })
 
 // @@@@@@@@@@ GET requests @@@@@@@@@@
 router.get('/', (req, res) => {
-    db.get()
+    userDB.get()
     .then(users => res.json(users))
     .catch(err => res.status(500).json({ message: 'list of users could not be retrieved' }))
 })
@@ -60,7 +62,7 @@ router.get('/', (req, res) => {
 router.get('/:id', validateUserId, (req, res) => {
     const { id } = req.params
 
-    db.getById(id)
+    userDB.getById(id)
     .then(user => res.json(user))
     .catch(err => res.status(500).json({ message: "error retrieving user" }))
 })
@@ -68,17 +70,32 @@ router.get('/:id', validateUserId, (req, res) => {
 router.get('/:id/posts', validateUserId, (req, res) => {
     const { id } = req.params
 
-    db.getUserPosts(id)
+    userDB.getUserPosts(id)
     .then(posts => res.json(posts))
     .catch(err => res.status(500).json({ message: "error retrieving user's posts" }))
 })
 
-router.delete('/:id', (req, res) => {
+// @@@@@@@@@@ DELETE request @@@@@@@@@@
+router.delete('/:id', validateUserId, (req, res) => {
+    const { id } = req.params
 
+    userDB.getById(id)
+    .then(user => {
+        userDB.remove(id)
+        .then(remUser => res.json(user))
+        .catch(err => res.status(500).json({ message: "error deleting user" }))
+    })
+    .catch(err => res.status(500).json({ message: "error retrieving user for deletion" }))
 })
 
-router.put('/:id', (req, res) => {
+// @@@@@@@@@@ PUT request @@@@@@@@@@
+router.put('/:id', validateUser, (req, res) => {
+    const { id } = req.params
+    const updateUser = req.body
 
+    userDB.update(id, updateUser)
+    .then(user => res.json({ id: id, ...updateUser }))
+    .catch(err => res.status(500).json({ message: "error updating user" }))
 })
 
 module.exports = router;
