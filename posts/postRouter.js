@@ -33,8 +33,17 @@ router.get('/:id', validatePostId, (req, res) => {
     .catch(err => res.status(500).json({ message: "error retrieving post" }))
 })
 
-router.delete('/:id', (req, res) => {
+// @@@@@@@@@@ DELETE requests @@@@@@@@@@
+router.delete('/:id', validatePostId, (req, res) => {
+    const { id } = req.params
 
+    postDB.getById(id)
+    .then(post => {
+        postDB.remove(id)
+        .then(remPot => res.json(post))
+        .catch(err => res.status(500).json({ message: "error deleting post" }))
+    })
+    .catch(err => res.status(500).json({ message: "error retrieving post for deletion" }))
 })
 
 router.put('/:id', (req, res) => {
