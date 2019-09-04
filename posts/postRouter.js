@@ -47,7 +47,12 @@ router.delete('/:id', validatePostId, (req, res) => {
 })
 
 router.put('/:id', (req, res) => {
+    const { id } = req.params
+    const updatePost = req.body
 
+    postDB.update(id, updatePost)
+    .then(post => res.json({ id: id, ...updatePost }))
+    .catch(err => res.status(500).json({ message: "error updating post" }))
 })
 
 module.exports = router
