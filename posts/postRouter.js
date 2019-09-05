@@ -33,7 +33,7 @@ router.get('/:id', validatePostId, (req, res) => {
     .catch(err => res.status(500).json({ message: "error retrieving post" }))
 })
 
-// @@@@@@@@@@ DELETE requests @@@@@@@@@@
+// @@@@@@@@@@ DELETE request @@@@@@@@@@
 router.delete('/:id', validatePostId, (req, res) => {
     const { id } = req.params
 
@@ -46,6 +46,7 @@ router.delete('/:id', validatePostId, (req, res) => {
     .catch(err => res.status(500).json({ message: "error retrieving post for deletion" }))
 })
 
+// @@@@@@@@@@ PUT request @@@@@@@@@@
 router.put('/:id', (req, res) => {
     const { id } = req.params
     const updatePost = req.body
